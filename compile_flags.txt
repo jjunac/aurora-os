@@ -1,0 +1,8 @@
+-I.
+-ffreestanding
+-Wall
+-Wextra
+-Werror
+-pedantic
+-nostdlib
+-m32
