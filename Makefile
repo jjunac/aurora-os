@@ -13,8 +13,9 @@ BUILD_DIR := build
 SRC_DIRS := kernel libcpp
 INC_DIRS := $(SRC_DIRS)
 # INC_FLAGS := $(addprefix -I,$(INC_DIRS))
-KERNEL_BIN := $(BIN_DIR)/kernel.bin
-OS_IMAGE := $(BIN_DIR)/myos.iso
+KERNEL_BIN := $(BIN_DIR)/boot/kernel.bin
+GRUB_CFG := $(BIN_DIR)/boot/grub/grub.cfg
+OS_IMAGE := myos.iso
 
 # C specifics
 C_SOURCES := $(shell find $(SRC_DIRS) -mindepth 1 -type f -name *.c)
@@ -60,36 +61,72 @@ ASFLAGS := -32
 
 
 #==========================================================
+#	 Utils
+#==========================================================
+
+BLACK := 30
+RED := 31
+GREEN := 32
+YELLOW := 33
+BLUE := 34
+MAGENTA := 35
+CYAN := 36
+WHITE := 37
+DARK_GRAY := 90
+LRED := 91
+LGREEN := 92
+LYELLOW := 93
+LBLUE := 94
+LMAGENTA := 95
+LCYAN := 96
+WHITE := 97
+
+MAX_STEP_SIZE := 8
+define log_step
+	printf "    \e[%sm%-$(MAX_STEP_SIZE)s\e[0m %s\n" "$(strip $(1))" "[$(strip $(2))]" "$(strip $(3))"
+endef
+
+
+#==========================================================
 #	 Default rule
 #==========================================================
 
 .PHONY: all
-all: run
+all: run-iso
 
 
 #==========================================================
 #	 Regular build
 #==========================================================
 
-# Build  the  kernel  binary
+$(OS_IMAGE): $(KERNEL_BIN)
+	$(call log_step, $(YELLOW), image, $@)
+	mkdir -p `basename $(GRUB_CFG)`
+	rm -rf $(GRUB_CFG)
+	echo "menuentry \"$(OS_IMAGE:.iso=)\" { 		\n\
+		multiboot $(KERNEL_BIN:$(BIN_DIR)/%=/%)	\n\
+	}" > $(GRUB_CFG)
+	grub-mkrescue -o $(OS_IMAGE) $(BIN_DIR)
+
 $(KERNEL_BIN): $(OBJECTS) $(BUILD_DIR)/boot/boot.o
+	$(call log_step, $(LMAGENTA), binary, $@)
 	mkdir -p $(@D)
-	echo "    \e[95m[binary]\e[0m $@"
 	$(CC) $(CFLAGS) -T boot/linker.ld -o $@ $^
+	grub-file --is-x86-multiboot $@
 
 $(BUILD_DIR)/boot/boot.o: boot/boot.s
+	$(call log_step, $(LCYAN), object, $<)
 	mkdir -p $(@D)
-	echo "    \e[96m[object]\e[0m $<"
 	$(AS) $(ASFLAGS) $< -o $@
 
 $(BUILD_DIR)/%.o: %.c
+	$(call log_step, $(LCYAN), object, $<)
 	mkdir -p $(@D)
-	echo "    \e[96m[object]\e[0m $<"
 	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<
 
 $(BUILD_DIR)/%.o: %.cpp
+	$(call log_step, $(LCYAN), object, $<)
 	mkdir -p $(@D)
-	echo "    \e[96m[object]\e[0m $<"
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -o $@ $<
 
 
@@ -99,20 +136,29 @@ $(BUILD_DIR)/%.o: %.cpp
 
 .PHONY: run
 run: $(KERNEL_BIN)
-	echo "    \e[92m[run]   \e[0m $<"
+	$(call log_step, $(LGREEN), run, $<)
 	qemu-system-i386 -kernel $<
+
+.PHONY: run-iso
+run-iso: $(OS_IMAGE)
+	$(call log_step, $(LGREEN), run, $<)
+	qemu-system-i386 -cdrom $<
 
 
 #==========================================================
 #	 Clean
 #==========================================================
 
+define clean_file
+	$(call log_step, $(LRED), delete, $(1))
+	rm -rf $(1)
+endef
+
 .PHONY: clean
 clean:
-	echo "    \e[91m[delete]\e[0m build"
-	rm -rf build
-	echo "    \e[91m[delete]\e[0m bin"
-	rm -rf bin
+	$(call clean_file, build)
+	$(call clean_file, bin)
+	$(call clean_file, $(OS_IMAGE))
 
 
 

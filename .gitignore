@@ -49,6 +49,7 @@
 *.x86_64
 *.hex
 *.bin
+*.iso
 
 # Debug files
 *.dSYM/
