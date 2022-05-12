@@ -1,19 +1,16 @@
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
-
-#include "kernel/kdef.hpp"
+#include "kernel/kdefs.hpp"
 
 namespace kernel {
 
 class Tty {
 public:
-    void Init();
+    void init();
 
-    void Putchar(uchar c);
-    void Clear();
-    void Fill(uchar c);
+    void putchar(uchar c);
+    void clear();
+    void fill(uchar c);
 
 private:
     enum VgaColor {

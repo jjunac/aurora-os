@@ -66,7 +66,7 @@ char* itoa_10(T value, char* str) {
 }
 
 int putchar(char c) {
-    kernel::tty().Putchar(c);
+    kernel::tty().putchar(c);
     return 0;
 }
 
@@ -74,7 +74,7 @@ int write(void* buffer, size_t size, size_t count) {
     uchar* buf = reinterpret_cast<uchar*>(buffer);
     const uchar* end = buf + (size * count);
     for (; buf < end; ++buf) {
-        kernel::tty().Putchar(*buf);
+        kernel::tty().putchar(*buf);
     }
     return 0;
 }

@@ -8,12 +8,12 @@ namespace kernel {
 uint16_t* const Tty::kVgaBufferBegin = reinterpret_cast<uint16_t*>(0xB8000);
 uint16_t* const Tty::kVgaBufferEnd = kVgaBufferBegin + kVgaBufferSize;
 
-void Tty::Init() {
+void Tty::init() {
     curVgaBuffer_ = kVgaBufferBegin;
-    Clear();
+    clear();
 }
 
-void Tty::Putchar(uchar c) {
+void Tty::putchar(uchar c) {
     if (curVgaBuffer_ == kVgaBufferEnd) {
         scroll();
     }
@@ -28,11 +28,11 @@ void Tty::Putchar(uchar c) {
     }
 }
 
-void Tty::Clear() {
-    Fill(0);
+void Tty::clear() {
+    fill(0);
 }
 
-void Tty::Fill(uchar c) {
+void Tty::fill(uchar c) {
     std::fill(kVgaBufferBegin, kVgaBufferEnd, constructVgaEntry(c));
 }
 
