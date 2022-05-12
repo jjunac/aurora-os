@@ -1,3 +1,9 @@
+.global kernel_load_idt
+kernel_load_idt:
+   mov 4(%esp), %eax     /* Get the pointer to the IDT, passed as a parameter. */
+   lidt (%eax)           /* Load the new IDT pointer */
+   ret
+
 .macro ISR_NOERR index
     .global isr\index
     .type isr\index, @function

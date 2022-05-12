@@ -38,7 +38,4 @@ struct IdtPointer
 
 }
 
-inline void kernel_load_idt(uint32_t idtPtr) {
-    __asm__ volatile ("lidt %0" : : "m"(idtPtr)); // load the new IDT
-    __asm__ volatile ("sti"); // set the interrupt flag
-}
+extern "C" void kernel_load_idt(uint32_t idtPtr);

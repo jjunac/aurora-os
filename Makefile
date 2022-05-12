@@ -150,7 +150,7 @@ $(BUILD_DIR)/%.s.o: %.s
 .PHONY: run
 run: $(KERNEL_BIN)
 	@$(call log_step, $(LGREEN), run, $<)
-	qemu-system-i386 -kernel $<
+	qemu-system-i386 -kernel $< --no-reboot --no-shutdown
 
 .PHONY: run-iso
 run-iso: $(OS_IMAGE)
