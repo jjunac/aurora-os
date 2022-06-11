@@ -66,3 +66,6 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# Temp directories
+/bin
+

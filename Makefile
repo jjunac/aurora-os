@@ -14,7 +14,7 @@ SRC_DIRS := boot kernel libcpp
 INC_DIRS := $(SRC_DIRS)
 # INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 KERNEL_BIN := $(BIN_DIR)/boot/kernel.bin
-GRUB_CFG := $(BIN_DIR)/boot/grub/grub.cfg
+GRUB_CFG := boot/grub.cfg
 OS_IMAGE := myos.iso
 
 # C specifics
@@ -105,11 +105,8 @@ build-iso: $(OS_IMAGE)
 
 $(OS_IMAGE): $(KERNEL_BIN)
 	@$(call log_step, $(YELLOW), image, $@)
-	@mkdir -p `dirname $(GRUB_CFG)`
-	@rm -rf $(GRUB_CFG)
-	@echo "menuentry \"$(OS_IMAGE:.iso=)\" { 		\n\
-		multiboot $(KERNEL_BIN:$(BIN_DIR)/%=/%)	\n\
-	}" > $(GRUB_CFG)
+	@mkdir -p $(BIN_DIR)/boot/grub
+	@cp $(GRUB_CFG) $(BIN_DIR)/boot/grub/grub.cfg
 	grub-mkrescue -o $(OS_IMAGE) $(BIN_DIR)
 
 # Convenience rule
@@ -120,7 +117,7 @@ $(KERNEL_BIN): $(OBJECTS)
 	@$(call log_step, $(LMAGENTA), binary, $@)
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -T boot/linker.ld -o $@ $^
-	grub-file --is-x86-multiboot $@
+	grub-file --is-x86-multiboot $@ || (>&2 echo "ERROR: $@ is not x86 multiboot"; return 1)
 
 #$(BUILD_DIR)/boot/boot.o: boot/boot.s
 #	$(call log_step, $(LCYAN), object, $<)
@@ -151,6 +148,17 @@ $(BUILD_DIR)/%.s.o: %.s
 run: $(KERNEL_BIN)
 	@$(call log_step, $(LGREEN), run, $<)
 	qemu-system-i386 -kernel $< --no-reboot --no-shutdown
+
+.PHONY: run-gdb
+run-gdb: $(KERNEL_BIN)
+	@$(call log_step, $(LGREEN), run, $<)
+	qemu-system-i386 -kernel $< --no-reboot --no-shutdown -S -s &
+	gdb $< -x qemu.gdb
+
+.PHONY: run-bochs
+run-bochs: $(OS_IMAGE)
+	@$(call log_step, $(LGREEN), run, $<)
+	echo "c" | bochs
 
 .PHONY: run-iso
 run-iso: $(OS_IMAGE)
