@@ -20,4 +20,8 @@ struct Registers
     BOOST_PP_REPEAT(32, ISR_DECLARATION, _)
 #undef ISR_DECLARATION
 
+#define IRQ_DECLARATION(z, n, data) extern "C" void irq##n ();
+    BOOST_PP_REPEAT(16, IRQ_DECLARATION, _)
+#undef IRQ_DECLARATION
+
 

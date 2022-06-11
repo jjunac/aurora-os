@@ -6,3 +6,5 @@
 -Werror
 -pedantic
 -nostdlib
+-m32
+-g

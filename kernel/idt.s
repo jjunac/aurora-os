@@ -64,26 +64,83 @@ up for kernel mode segments, calls the C-level fault handler,
 and finally restores the stack frame.
 */
 isr_common:
-   pusha                    /* Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax */
+    pusha                    /* Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax */
 
-   mov %ds, %ax               /* Lower 16-bits of eax = ds. */
-   push %eax                /* save the data segment descriptor */
+    mov %ds, %ax               /* Lower 16-bits of eax = ds. */
+    push %eax                /* save the data segment descriptor */
 
-   mov $0x10, %ax       /* load the kernel data segment descriptor */
-   mov %ax, %ds
-   mov %ax, %es
-   mov %ax, %fs
-   mov %ax, %gs
+    mov $0x10, %ax       /* load the kernel data segment descriptor */
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
 
-   call isr_handler
+    call isr_handler
 
-   pop %eax        /* reload the original data segment descriptor */
-   mov %ax, %ds
-   mov %ax, %es
-   mov %ax, %fs
-   mov %ax, %gs
+    pop %eax        /* reload the original data segment descriptor */
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
 
-   popa                     /* Pops edi,esi,ebp... */
-   add $8, %esp    /* Cleans up the pushed error code and pushed ISR number */
-   sti
-   iret           /* pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP */
+    popa                     /* Pops edi,esi,ebp... */
+    add $8, %esp    /* Cleans up the pushed error code and pushed ISR number */
+    sti
+    iret           /* pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP */
+
+
+.macro IRQ index
+    .global irq\index
+    .type irq\index, @function
+    irq\index:
+        push $\index
+        jmp irq_common
+.endm
+
+IRQ 0
+IRQ 1
+IRQ 2
+IRQ 3
+IRQ 4
+IRQ 5
+IRQ 6
+IRQ 7
+IRQ 8
+IRQ 9
+IRQ 10
+IRQ 11
+IRQ 12
+IRQ 13
+IRQ 14
+IRQ 15
+
+/*
+This is our common IRQ stub. It saves the processor state, sets
+up for kernel mode segments, calls the C-level fault handler,
+and finally restores the stack frame. 
+*/
+irq_common:
+    pusha                    /* Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax */
+
+    mov %ds, %ax               /* Lower 16-bits of eax = ds. */
+    push %eax                /* save the data segment descriptor */
+
+    mov $0x10, %ax       /* load the kernel data segment descriptor */
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+
+    call irq_handler
+
+    pop %eax        /* reload the original data segment descriptor */
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+
+    popa                     /* Pops edi,esi,ebp... */
+    add $8, %esp    /* Cleans up the pushed error code and pushed ISR number */
+    sti
+    iret           /* pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP */
+

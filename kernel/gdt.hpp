@@ -15,7 +15,7 @@ struct GdtEntry
         , base_low(base & 0xFFFF)
         , base_middle((base >> 16) & 0xFF)
         , access(access)
-        , granularity(((limit >> 16) & 0X0F) | granularity)
+        , granularity(((limit >> 16) & 0X0F) | (granularity & 0xF0))
         , base_high((base >> 24) & 0xFF) {}
 
     uint16_t limit_low;           // The lower 16 bits of the limit.
