@@ -26,7 +26,7 @@ void Kernel::init() {
 
 void Kernel::initGdt() {
     gdtPtr_.limit = sizeof(gdtEntries_) - 1;
-    gdtPtr_.base  = reinterpret_cast<uint32_t>(&gdtEntries_[0]);
+    gdtPtr_.base  = &gdtEntries_[0];
 
     std::get<0>(gdtEntries_) = GdtEntry{0, 0         , 0   , 0   };     // Null segment
     std::get<1>(gdtEntries_) = GdtEntry{0, 0xFFFFFFFF, 0x9A, 0xCF};     // Kernel mode code segment
@@ -40,7 +40,15 @@ void Kernel::initGdt() {
 
 void Kernel::initIdt() {
     idtPtr_.limit = sizeof(idtEntries_) - 1;
-    idtPtr_.base  = reinterpret_cast<uint32_t>(&idtEntries_[0]);
+    idtPtr_.base  = &idtEntries_[0];
+
+    libcpp::printf("48: %d\n", 48);
+    libcpp::printf("2048 : %d\n", 2048);
+    libcpp::printf("12288 : %d\n", 12288);
+    libcpp::printf("sizeof(IdtEntry): %d\n", sizeof(IdtEntry));
+    libcpp::printf("sizeof(idtEntries_): %d\n", sizeof(idtEntries_));
+    libcpp::printf("sizeof(idtPtr_): %d\n", sizeof(idtPtr_));
+    libcpp::printf("Loading IDT base: %d limit: %d\n", idtPtr_.base, idtPtr_.limit);
 
     // Maps the CPU dedicated interrupts:
     //   0  - Division by zero exception
@@ -100,9 +108,9 @@ void Kernel::initIdt() {
     #undef SET_IRQ
 
     // std::get<32>(idtEntries_) = IdtEntry{reinterpret_cast<uint32_t>(&irq0), 0x08, 0x8E};
-    // std::get<33>(idtEntries_) = IdtEntry{reinterpret_cast<uint32_t>(&irq1), 0x08, 0x8E};
+    std::get<33>(idtEntries_) = IdtEntry{reinterpret_cast<uint32_t>(&irq1), 0x08, 0x8E};
 
-    kernel_load_idt(reinterpret_cast<uint32_t>(&idtPtr_));
+    kernel_load_idt(&idtPtr_);
     libcpp::println("kernel_load_idt done\n");
 
     __asm__ volatile ("int $0x3");
@@ -110,24 +118,8 @@ void Kernel::initIdt() {
     __asm__ volatile ("int $0x1F");
     libcpp::println("After INT\n");
 
-    // __asm__ volatile ("hlt");
-
-
-    // isr24();
-
-    // FIXME check
-    //  - https://forum.osdev.org/viewtopic.php?f=1&t=23202
-    //  - https://forum.osdev.org/viewtopic.php?f=1&t=26222
+    // FIXME
     __asm__ volatile ("int $0x21");
-
-    // 10100 10 1
-
-
-
-    // irq15();
-    // irq1();
-
-    // __asm__ volatile ("int $0x21");
 
 }
 

@@ -26,43 +26,50 @@ namespace __itoa {
     };
 
     template <typename T>
-    inline char* append1(char* buf, T i) {
-        buf[0] = '0' + static_cast<char>(i);
-        return buf + 1;
+    inline char* prepend1(char* buflim, T i) {
+        *(--buflim) = '0' + static_cast<char>(i);
+        return buflim;
     }
 
     template <typename T>
-    inline char* append2(char* buf, T i) {
+    inline char* prepend2(char* buflim, T i) {
         const size_t pos = 2*i;
-        buf[0] = digits[pos];
-        buf[1] = digits[pos+1];
-        return buf + 2;
+        *(--buflim) = digits[pos+1];
+        *(--buflim) = digits[pos];
+        return buflim;
     }
 }
 
+// Convert a base 10 unsigned number to string.
+// Takes in param the end of a buffer of at least 11 chars, and returns the start of the string.
+// It doesn't put \0 at the end, it's up to the user to compute the size.
 template <typename T, std::enable_if_t<std::is_integral<T>::value && std::is_unsigned<T>::value, bool> = true>
-char* itoa_10(T value, char* str) {
+char* itoa_10(T value, char* buflim) {
     while (value >= 100) {
-        const T rem = value % 100;
+        const T remainder = value % 100;
         value /= 100;
-        str = __itoa::append2(str, rem);
+        buflim = __itoa::prepend2(buflim, remainder);
     }
     if (value >= 10) {
-        str = __itoa::append2(str, value);
+        buflim = __itoa::prepend2(buflim, value);
     } else {
-        str = __itoa::append1(str, value);
+        buflim = __itoa::prepend1(buflim, value);
     }
-    return str;
+    return buflim;
 }
 
+// Convert a base 10 signed number to string.
+// Takes in param the end of a buffer of at least 11 chars, and returns the start of the string.
+// It doesn't put \0 at the end, it's up to the user to compute the size.
 template <typename T, std::enable_if_t<std::is_integral<T>::value && std::is_signed<T>::value, bool> = true>
-char* itoa_10(T value, char* str) {
-    if (value < 0) {
-        *str = '-';
-        ++str;
-        value = -value;
+char* itoa_10(T value, char* buflim) {
+    if (value >= 0) {
+        return itoa_10(static_cast<typename std::make_unsigned<T>::type>(value), buflim);
     }
-    return itoa_10(static_cast<typename std::make_unsigned<T>::type>(value), str);
+    value = -value;
+    buflim = itoa_10(static_cast<typename std::make_unsigned<T>::type>(value), buflim);
+    *(--buflim) = '-';
+    return buflim;
 }
 
 int putchar(char c) {
@@ -70,8 +77,8 @@ int putchar(char c) {
     return 0;
 }
 
-int write(void* buffer, size_t size, size_t count) {
-    uchar* buf = reinterpret_cast<uchar*>(buffer);
+int write(const void* buffer, size_t size, size_t count) {
+    const uchar* buf = reinterpret_cast<const uchar*>(buffer);
     const uchar* end = buf + (size * count);
     for (; buf < end; ++buf) {
         kernel::tty().putchar(*buf);
@@ -108,8 +115,8 @@ int printf(const char* format, ...) {
                 int i = va_arg(args, int);
                 // Biggest int is -2147483646
                 char buf[11];
-                const char* end = itoa_10(i, buf);
-                write(buf, sizeof(buf[0]), end - buf);
+                const char* beg = itoa_10(i, buf + sizeof(buf));
+                write(beg, sizeof(buf[0]), buf + sizeof(buf) - beg);
                 break;
             }
             case 's': {

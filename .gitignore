@@ -69,3 +69,4 @@ dkms.conf
 # Temp directories
 /bin
 
+bochsout.txt

@@ -15,7 +15,7 @@ struct GdtEntry
         , base_low(base & 0xFFFF)
         , base_middle((base >> 16) & 0xFF)
         , access(access)
-        , granularity(((limit >> 16) & 0X0F) | (granularity & 0xF0))
+        , granularity(granularity)
         , base_high((base >> 24) & 0xFF) {}
 
     uint16_t limit_low;           // The lower 16 bits of the limit.
@@ -30,10 +30,10 @@ struct GdtEntry
 struct GdtPointer
 {
     GdtPointer() = default;
-    GdtPointer(uint16_t limit, uint32_t base) : limit(limit), base(base) {}
+    GdtPointer(uint16_t limit, GdtEntry* base) : limit(limit), base(base) {}
 
     uint16_t limit;               // The upper 16 bits of all selector limits.
-    uint32_t base;                // The address of the first GdtEntry struct.
+    GdtEntry* base;                // The address of the first GdtEntry struct.
 } __attribute__((packed));
 
 }

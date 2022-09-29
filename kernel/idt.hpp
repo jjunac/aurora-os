@@ -30,12 +30,12 @@ struct IdtEntry
 struct IdtPointer
 {
     IdtPointer() = default;
-    IdtPointer(uint16_t limit, uint32_t base) : limit(limit), base(base) {}
+    IdtPointer(uint16_t limit, IdtEntry* base) : limit(limit), base(base) {}
 
     uint16_t limit;
-    uint32_t base;      // The address of the first element in our IdtEntry array.
+    IdtEntry* base;      // The address of the first element in our IdtEntry array.
 } __attribute__((packed));
 
 }
 
-extern "C" void kernel_load_idt(uint32_t idtPtr);
+extern "C" void kernel_load_idt(kernel::IdtPointer* idtPtr);
