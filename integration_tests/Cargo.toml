@@ -1,0 +1,29 @@
+[package]
+name = "integration_tests"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata.bootimage]
+run-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
+
+[dependencies]
+bootloader = "0.9.8"
+aurora_kernel = { path = "../aurora_kernel" }
+x86_64 = "0.14.11"
+
+[[bin]]
+name = "test_boot"
+path = "src/test_boot.rs"
+test = false
+
+[[bin]]
+name = "test_should_panic"
+path = "src/test_should_panic.rs"
+test = false
+
+[[bin]]
+name = "test_isr_breakpoint"
+path = "src/interrupts/test_isr_breakpoint.rs"
+test = false
+
+
