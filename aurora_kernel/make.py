@@ -15,7 +15,7 @@ def build(ctx) -> bool:
 @makeutils.recipe(aliases=["r"], deps=["build"])
 def run(ctx) -> bool:
     '''Run the kernel in QEMU'''
-    return buildutils.run_image("aurora_kernel")
+    return buildutils.run_image("aurora_kernel", allow_interrupt=True)
 
 @makeutils.recipe(aliases=["t"])
 def test(ctx) -> bool:

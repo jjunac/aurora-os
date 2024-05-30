@@ -76,7 +76,7 @@ def build_image() -> tuple[bool, dict[str, str]]:
     return is_success
 
 
-def run_image(image: str, interrupt=True, isa_debug_exit=True, display=True) -> bool:
+def run_image(image: str, allow_interrupt=False, isa_debug_exit=True, display=True) -> bool:
     """
     Run the image with QEMU by:
      - Running the `qemu-system-x86_64 -drive format=raw,file=$image_path` command
@@ -106,7 +106,7 @@ def run_image(image: str, interrupt=True, isa_debug_exit=True, display=True) -> 
         return False
     except KeyboardInterrupt:
         logging.warn("Caught KeyboardInterrupt, killing QEMU")
-        return interrupt
+        return allow_interrupt
 
 
 def run_cargo(command, with_target=False) -> bool:

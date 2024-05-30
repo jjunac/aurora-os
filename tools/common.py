@@ -52,7 +52,7 @@ class ColoredFormatter(logging.Formatter):
     def __init__(self):
         logging.Formatter.__init__(
             self,
-            "%(asctime)s.%(msecs)03d | %(levelname)-8s | %(module)-16s - %(message)s",
+            "%(asctime)s.%(msecs)03d | %(levelname)-8s | %(module)-16s | %(message)s",
             datefmt="%H:%M:%S",
         )
 

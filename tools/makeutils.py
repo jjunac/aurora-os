@@ -127,7 +127,7 @@ def make():
     exit(0 if is_success else 1)
 
 
-def exec_child_make(command, paths) -> bool:
+def exec_child_make(command, paths, allow_interrupt=False) -> bool:
     """Execute child make.py"""
     current_make_dir = _get_caller_make_dir()
 
@@ -143,7 +143,12 @@ def exec_child_make(command, paths) -> bool:
             stdout=sys.stdout,
             stderr=sys.stderr,
         )
-        process.wait()
+        try:
+            process.wait()
+        except KeyboardInterrupt:
+            logging.warn("Caught KeyboardInterrupt during child make execution")
+            process.kill()
+            return allow_interrupt
         if process.returncode != 0:
             logging.error(
                 f"Child make.py at `{make_path}` exited with code {process.returncode}"

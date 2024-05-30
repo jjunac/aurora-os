@@ -55,7 +55,7 @@ def test(ctx) -> bool:
             failed_tests.append(t)
             continue
 
-        is_success = buildutils.run_image(path.basename(t)[:-3], interrupt=False, display=False)
+        is_success = buildutils.run_image(path.basename(t)[:-3], display=False)
 
         if is_success:
             logging.info(f"[       OK ] {t}")
